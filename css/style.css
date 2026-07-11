@@ -64,6 +64,14 @@ img { display: block; max-width: 100%; }
   mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 75%);
 }
 
+/* Fareyi takip eden yumuşak ışık */
+.cursor-glow {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(560px circle at var(--mx, 50%) var(--my, 20%), rgba(35,200,255,0.10), transparent 65%);
+  transition: opacity .4s;
+}
+@media (max-width: 760px), (hover: none) { .cursor-glow { display: none; } }
+
 /* Yüzen parıltı noktaları */
 .bg-orbs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
 .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .5; }
@@ -283,25 +291,8 @@ img { display: block; max-width: 100%; }
 .about-section { padding: 80px 0; }
 .about-inner { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 60px; align-items: center; }
 .about-visual { position: relative; display: flex; justify-content: center; align-items: center; }
-.about-frame {
-  position: relative; width: 280px; height: 280px; border-radius: 28px;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(150deg, var(--surface), var(--surface-2));
-  border: 1px solid var(--border);
-}
-.about-frame::before {
-  content: ""; position: absolute; inset: -1px; border-radius: 28px; padding: 1px;
-  background: linear-gradient(135deg, var(--border-hl), transparent 40%, transparent 60%, var(--border-hl));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  opacity: .6;
-}
-.about-frame::after {
-  content: ""; position: absolute; top: 18px; left: 18px; right: 18px; bottom: 18px;
-  border-radius: 18px; border: 1px dashed var(--border); opacity: .5;
-}
-.about-logo { width: 150px; height: auto; position: relative; z-index: 2; filter: drop-shadow(0 0 24px rgba(35,200,255,.18)); animation: float 5s ease-in-out infinite; }
-@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+.about-logo { width: 230px; height: auto; position: relative; z-index: 2; filter: drop-shadow(0 0 34px var(--accent-glow)); animation: float 5s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-18px) rotate(3deg); } }
 .about-content p { color: var(--text-dim); margin-top: 16px; font-size: 16px; }
 .about-content .hero-badge { margin-bottom: 16px; }
 .about-list { list-style: none; margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

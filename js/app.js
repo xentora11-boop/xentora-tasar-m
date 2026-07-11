@@ -12,13 +12,16 @@ const emptyState = $('#empty-state');
 /* Yıl */
 $('#year').textContent = new Date().getFullYear();
 
-/* Fare hareketine göre arkaplan parıltılarında hafif paralaks */
+/* Fare hareketine göre arkaplan parıltılarında hafif paralaks + takip eden ışık */
 const bgOrbs = $('.bg-orbs');
+const root = document.documentElement;
 if (bgOrbs && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   window.addEventListener('mousemove', (e) => {
     const px = (e.clientX / window.innerWidth - 0.5);
     const py = (e.clientY / window.innerHeight - 0.5);
     bgOrbs.style.transform = `translate(${px * -24}px, ${py * -24}px)`;
+    root.style.setProperty('--mx', e.clientX + 'px');
+    root.style.setProperty('--my', e.clientY + 'px');
   });
 }
 
