@@ -2,6 +2,7 @@
 // GET    /api/designs           -> tum tasarimlari listeler (herkese acik)
 // GET    /api/designs?check=1   -> admin sifresini dogrular (header ile)
 // POST   /api/designs           -> yeni tasarim ekler (admin sifresi gerekir)
+// PUT    /api/designs?id=123    -> baslik/kategori gunceller (admin sifresi gerekir)
 // DELETE /api/designs?id=123    -> tasarim siler (admin sifresi gerekir)
 
 import { createClient } from "@libsql/client";
@@ -115,6 +116,23 @@ export default async (req) => {
         args: [title, category, image],
       });
       return json({ ok: true, id: Number(res.lastInsertRowid) }, 201);
+    }
+
+    // --- Guncelle (korumali) ---
+    if (req.method === "PUT") {
+      if (!isAuthed(req)) return json({ error: "Yetkisiz" }, 401);
+      const id = url.searchParams.get("id");
+      if (!id) return json({ error: "id gerekli" }, 400);
+      const body = await req.json().catch(() => ({}));
+      const title = String(body.title || "").trim();
+      const category = String(body.category || "Diger").trim();
+      if (!title) return json({ error: "Baslik zorunlu" }, 400);
+
+      await db.execute({
+        sql: "UPDATE designs SET title = ?, category = ? WHERE id = ?",
+        args: [title, category, id],
+      });
+      return json({ ok: true });
     }
 
     // --- Sil (korumali) ---

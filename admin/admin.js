@@ -161,6 +161,9 @@ $('#add-form').addEventListener('submit', async (e) => {
 });
 
 /* ================= LİSTE ================= */
+const CATEGORIES = ['Afiş', 'Logo', 'Banner', 'Gif', 'Diğer'];
+let editingId = null;
+
 function renderList() {
   const list = $('#design-list');
   const empty = $('#list-empty');
@@ -178,34 +181,91 @@ function renderList() {
     const media = isVid
       ? `<video src="${src}" muted></video>`
       : `<img src="${src}" alt="" />`;
-    item.innerHTML = `
-      ${media}
-      <div class="design-meta">
-        <div class="t">${escapeHtml(d.title || 'İsimsiz')}</div>
-        <div class="c">${escapeHtml(d.category || '')}</div>
-      </div>
-      <button class="design-del" data-id="${d.id}" title="Sil">🗑</button>
-    `;
+
+    if (editingId === d.id) {
+      item.innerHTML = `
+        ${media}
+        <div class="design-edit-form">
+          <input type="text" class="edit-title" value="${escapeHtml(d.title || '')}" />
+          <select class="edit-category">
+            ${CATEGORIES.map(c => `<option ${c === d.category ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="design-edit-actions">
+          <button class="design-save" data-id="${d.id}" title="Kaydet">✓</button>
+          <button class="design-cancel" title="İptal">✕</button>
+        </div>
+      `;
+    } else {
+      item.innerHTML = `
+        ${media}
+        <div class="design-meta">
+          <div class="t">${escapeHtml(d.title || 'İsimsiz')}</div>
+          <div class="c">${escapeHtml(d.category || '')}</div>
+        </div>
+        <button class="design-edit-btn" data-id="${d.id}" title="Düzenle">✎</button>
+        <button class="design-del" data-id="${d.id}" title="Sil">🗑</button>
+      `;
+    }
     list.appendChild(item);
   });
 }
 
 $('#design-list').addEventListener('click', async (e) => {
-  const btn = e.target.closest('.design-del');
-  if (!btn) return;
-  if (!confirm('Bu tasarımı silmek istediğine emin misin?')) return;
+  const editBtn = e.target.closest('.design-edit-btn');
+  const cancelBtn = e.target.closest('.design-cancel');
+  const saveBtn = e.target.closest('.design-save');
+  const delBtn = e.target.closest('.design-del');
 
-  try {
-    const res = await fetch(API + '?id=' + encodeURIComponent(btn.dataset.id), {
-      method: 'DELETE',
-      headers: authHeaders(),
-    });
-    if (res.status === 401) { toast('Oturum düştü, tekrar giriş yap'); return; }
-    if (!res.ok) throw new Error('silme hatası');
-    toast('Silindi');
-    await loadDesigns();
-  } catch {
-    toast('Silinemedi');
+  if (editBtn) {
+    editingId = Number(editBtn.dataset.id);
+    renderList();
+    return;
+  }
+
+  if (cancelBtn) {
+    editingId = null;
+    renderList();
+    return;
+  }
+
+  if (saveBtn) {
+    const item = saveBtn.closest('.design-item');
+    const title = item.querySelector('.edit-title').value.trim();
+    const category = item.querySelector('.edit-category').value;
+    if (!title) { toast('Başlık boş olamaz'); return; }
+
+    try {
+      const res = await fetch(API + '?id=' + encodeURIComponent(saveBtn.dataset.id), {
+        method: 'PUT',
+        headers: authHeaders({ 'content-type': 'application/json' }),
+        body: JSON.stringify({ title, category }),
+      });
+      if (res.status === 401) { toast('Oturum düştü, tekrar giriş yap'); return; }
+      if (!res.ok) throw new Error('güncelleme hatası');
+      toast('Güncellendi ✓');
+      editingId = null;
+      await loadDesigns();
+    } catch {
+      toast('Güncellenemedi');
+    }
+    return;
+  }
+
+  if (delBtn) {
+    if (!confirm('Bu tasarımı silmek istediğine emin misin?')) return;
+    try {
+      const res = await fetch(API + '?id=' + encodeURIComponent(delBtn.dataset.id), {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (res.status === 401) { toast('Oturum düştü, tekrar giriş yap'); return; }
+      if (!res.ok) throw new Error('silme hatası');
+      toast('Silindi');
+      await loadDesigns();
+    } catch {
+      toast('Silinemedi');
+    }
   }
 });
 
