@@ -177,12 +177,13 @@ img { display: block; max-width: 100%; }
   border-color: transparent; box-shadow: 0 6px 20px var(--accent-glow);
 }
 
-/* ===== Galeri grid — kategori başına sabit oran, kırpılır (gerilmez) ===== */
-.masonry { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; align-items: start; }
-@media (max-width: 560px) { .masonry { grid-template-columns: 1fr; } }
+/* ===== Masonry (resim oranı korunur, kırpılmaz) ===== */
+.masonry { column-count: 3; column-gap: 20px; }
+@media (max-width: 900px) { .masonry { column-count: 2; } }
+@media (max-width: 560px) { .masonry { column-count: 1; } }
 
 .card {
-  position: relative;
+  break-inside: avoid; margin-bottom: 20px; position: relative;
   border-radius: var(--radius); overflow: hidden;
   background: var(--surface); border: 1px solid var(--border);
   cursor: pointer; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s;
@@ -190,16 +191,9 @@ img { display: block; max-width: 100%; }
 }
 .card:hover { transform: translateY(-6px); border-color: var(--border-hl); box-shadow: 0 20px 48px rgba(0,0,0,.55), 0 0 28px var(--accent-glow); }
 
-/* Kategoriye göre sabit oran — tüm logolar aynı, tüm bannerlar aynı boyutta */
-.card-media { width: 100%; display: block; overflow: hidden; aspect-ratio: 4 / 3; background: var(--surface-2); }
-.card[data-cat="logo"] .card-media { aspect-ratio: 1 / 1; }
-.card[data-cat="banner"] .card-media { aspect-ratio: 16 / 9; }
-.card[data-cat="afiş"] .card-media { aspect-ratio: 3 / 4; }
-.card[data-cat="gif"] .card-media { aspect-ratio: 4 / 3; }
-
+.card-media { width: 100%; display: block; overflow: hidden; }
 .card-media img, .card-media video {
-  width: 100%; height: 100%; display: block;
-  object-fit: cover; object-position: center;
+  width: 100%; height: auto; display: block;
   transition: transform .5s cubic-bezier(.2,.8,.2,1);
 }
 .card:hover .card-media img,
