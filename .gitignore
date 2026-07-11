@@ -10,3 +10,6 @@ preview.png
 # Bağımlılıklar / Netlify
 node_modules/
 .netlify/
+
+# Gizli anahtarlar — ASLA commit'lenmez
+.env
