@@ -12,9 +12,15 @@ const emptyState = $('#empty-state');
 /* Yıl */
 $('#year').textContent = new Date().getFullYear();
 
-/* Header scroll efekti */
+/* Header scroll efekti + ilerleme çubuğu */
+const scrollProgress = $('#scroll-progress');
 window.addEventListener('scroll', () => {
   $('#header').classList.toggle('scrolled', window.scrollY > 20);
+  if (scrollProgress) {
+    const doc = document.documentElement;
+    const max = doc.scrollHeight - doc.clientHeight;
+    scrollProgress.style.width = (max > 0 ? (doc.scrollTop / max) * 100 : 0) + '%';
+  }
 });
 
 /* Verileri yükle — Turso backend'den (Netlify Function) */
@@ -43,7 +49,7 @@ function isVideo(file) { return /\.(mp4|webm|mov)$/i.test(file); }
 function buildCard(item, index) {
   const card = document.createElement('div');
   card.className = 'card';
-  card.style.animationDelay = (index % 9) * 0.05 + 's';
+  card.style.transitionDelay = (index % 9) * 0.06 + 's';
   card.dataset.index = index;
 
   const media = document.createElement('div');
@@ -99,8 +105,19 @@ function render() {
     return;
   }
   emptyState.hidden = true;
-  visibleList.forEach((item, i) => masonry.appendChild(buildCard(item, i)));
+  visibleList.forEach((item, i) => {
+    const card = buildCard(item, i);
+    masonry.appendChild(card);
+    cardObserver.observe(card);
+  });
 }
+
+/* Kartlar ekrana girince belirsin */
+const cardObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); cardObserver.unobserve(e.target); }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
 /* Filtreler */
 $('#filters').addEventListener('click', (e) => {
