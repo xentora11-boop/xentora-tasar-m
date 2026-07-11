@@ -1,9 +1,9 @@
-/* ===== Xentora Admin Panel ===== */
+/* ===== Xentora Admin Panel — Turso backend ===== */
 
-// --- Sabit giriş bilgisi ---
-const AUTH = { user: 'ozantaskin1491', pass: 'Oozan4651.' };
-const SESSION_KEY = 'xentora_admin_session';
-const STORE_KEY = 'xentora_designs';
+// Kullanici adi sadece arayuz kolayligi; asil guvenlik sunucudaki sifre (ADMIN_PASSWORD env).
+const USERNAME = 'ozantaskin1491';
+const SESSION_KEY = 'xentora_admin_pw';
+const API = '/api/designs';
 
 const $ = (s) => document.querySelector(s);
 
@@ -11,32 +11,60 @@ const $ = (s) => document.querySelector(s);
 const loginScreen = $('#login-screen');
 const panel = $('#panel');
 
+// Yazma isteklerinde gönderilecek şifre başlığı
+function authHeaders(extra = {}) {
+  return { 'x-admin-password': sessionStorage.getItem(SESSION_KEY) || '', ...extra };
+}
+
 function showPanel() {
   loginScreen.hidden = true;
   panel.hidden = false;
   loadDesigns();
 }
 
-// Oturum hatırla
-if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
-  showPanel();
-}
+// Oturum hatırla — kayıtlı şifreyi sunucuya doğrulat
+(async () => {
+  const pw = sessionStorage.getItem(SESSION_KEY);
+  if (!pw) return;
+  try {
+    const res = await fetch(API + '?check=1', { headers: authHeaders() });
+    const data = await res.json();
+    if (data.ok) showPanel();
+    else sessionStorage.removeItem(SESSION_KEY);
+  } catch { /* çevrimdışı — giriş ekranında kal */ }
+})();
 
-$('#login-form').addEventListener('submit', (e) => {
+$('#login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const u = $('#username').value.trim();
   const p = $('#password').value;
-  if (u === AUTH.user && p === AUTH.pass) {
-    sessionStorage.setItem(SESSION_KEY, 'ok');
-    showPanel();
-  } else {
-    const err = $('#login-error');
+  const err = $('#login-error');
+
+  if (u !== USERNAME) return showLoginError(err);
+
+  // Şifreyi sunucuda doğrula
+  try {
+    const res = await fetch(API + '?check=1', { headers: { 'x-admin-password': p } });
+    const data = await res.json();
+    if (data.ok) {
+      sessionStorage.setItem(SESSION_KEY, p);
+      showPanel();
+    } else {
+      showLoginError(err);
+    }
+  } catch {
+    err.textContent = 'Sunucuya ulaşılamadı. Backend kurulu mu?';
     err.hidden = false;
-    err.style.animation = 'none';
-    void err.offsetWidth;
-    err.style.animation = 'shake .4s';
   }
 });
+
+function showLoginError(err) {
+  err.textContent = 'Kullanıcı adı veya şifre hatalı.';
+  err.hidden = false;
+  err.style.animation = 'none';
+  void err.offsetWidth;
+  err.style.animation = 'shake .4s';
+}
 
 $('#logout-btn').addEventListener('click', () => {
   sessionStorage.removeItem(SESSION_KEY);
@@ -44,27 +72,18 @@ $('#logout-btn').addEventListener('click', () => {
 });
 
 /* ================= VERİ ================= */
-// Tam liste localStorage'da tutulur. İlk açılışta data/designs.json'dan tohumlanır.
 let designs = [];
 
 async function loadDesigns() {
-  const stored = localStorage.getItem(STORE_KEY);
-  if (stored) {
-    try { designs = JSON.parse(stored); } catch { designs = []; }
-  } else {
-    // İlk kez: yayındaki json'dan al
-    try {
-      const res = await fetch('../data/designs.json?v=' + Date.now());
-      const data = await res.json();
-      designs = Array.isArray(data) ? data : (data.items || []);
-    } catch { designs = []; }
-    save();
+  try {
+    const res = await fetch(API, { cache: 'no-store' });
+    const data = await res.json();
+    designs = Array.isArray(data) ? data : (data.items || []);
+  } catch {
+    designs = [];
+    toast('Tasarımlar yüklenemedi');
   }
   renderList();
-}
-
-function save() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(designs));
 }
 
 /* ================= EKLEME ================= */
@@ -91,8 +110,9 @@ fileInput.addEventListener('change', () => {
 
 function handleFile(file) {
   if (!file.type.startsWith('image/')) { toast('Lütfen bir resim/GIF seç'); return; }
-  if (file.size > 6 * 1024 * 1024) {
-    toast('Dosya 6MB üstü — daha küçük bir görsel öner.');
+  // base64, isteğe ~1.33x biner; sunucu limiti için orijinali ~4MB altında tut
+  if (file.size > 4 * 1024 * 1024) {
+    toast('Dosya 4MB üstü — daha küçük bir görsel öner (kayıt başarısız olabilir).');
   }
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -104,28 +124,40 @@ function handleFile(file) {
   reader.readAsDataURL(file);
 }
 
-$('#add-form').addEventListener('submit', (e) => {
+$('#add-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const title = $('#d-title').value.trim();
   const category = $('#d-category').value;
   if (!currentImageData) { toast('Önce bir görsel yükle'); return; }
 
-  designs.unshift({
-    title,
-    category,
-    image: currentImageData,
-    date: new Date().toISOString().slice(0, 10)
-  });
-  save();
-  renderList();
-  toast('Tasarım eklendi ✓');
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const oldLabel = btn.textContent;
+  btn.textContent = 'Yükleniyor…';
 
-  // formu sıfırla
-  e.target.reset();
-  currentImageData = null;
-  previewImg.hidden = true;
-  previewImg.src = '';
-  dzInner.hidden = false;
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: authHeaders({ 'content-type': 'application/json' }),
+      body: JSON.stringify({ title, category, image: currentImageData }),
+    });
+    if (res.status === 401) { toast('Oturum düştü, tekrar giriş yap'); return; }
+    if (!res.ok) throw new Error('kayıt hatası');
+
+    toast('Tasarım eklendi ✓ (yayında)');
+    // formu sıfırla
+    e.target.reset();
+    currentImageData = null;
+    previewImg.hidden = true;
+    previewImg.src = '';
+    dzInner.hidden = false;
+    await loadDesigns();
+  } catch {
+    toast('Eklenemedi — görsel çok büyük olabilir.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldLabel;
+  }
 });
 
 /* ================= LİSTE ================= */
@@ -138,7 +170,7 @@ function renderList() {
   if (designs.length === 0) { empty.hidden = false; return; }
   empty.hidden = true;
 
-  designs.forEach((d, i) => {
+  designs.forEach((d) => {
     const item = document.createElement('div');
     item.className = 'design-item';
     const src = resolveSrc(d.image);
@@ -152,33 +184,29 @@ function renderList() {
         <div class="t">${escapeHtml(d.title || 'İsimsiz')}</div>
         <div class="c">${escapeHtml(d.category || '')}</div>
       </div>
-      <button class="design-del" data-i="${i}" title="Sil">🗑</button>
+      <button class="design-del" data-id="${d.id}" title="Sil">🗑</button>
     `;
     list.appendChild(item);
   });
 }
 
-$('#design-list').addEventListener('click', (e) => {
+$('#design-list').addEventListener('click', async (e) => {
   const btn = e.target.closest('.design-del');
   if (!btn) return;
   if (!confirm('Bu tasarımı silmek istediğine emin misin?')) return;
-  designs.splice(+btn.dataset.i, 1);
-  save();
-  renderList();
-  toast('Silindi');
-});
 
-/* ================= YAYINLA (designs.json indir) ================= */
-$('#publish-btn').addEventListener('click', () => {
-  const json = JSON.stringify({ items: designs }, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'designs.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('designs.json indirildi → data/ klasörüne koy');
+  try {
+    const res = await fetch(API + '?id=' + encodeURIComponent(btn.dataset.id), {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (res.status === 401) { toast('Oturum düştü, tekrar giriş yap'); return; }
+    if (!res.ok) throw new Error('silme hatası');
+    toast('Silindi');
+    await loadDesigns();
+  } catch {
+    toast('Silinemedi');
+  }
 });
 
 /* ================= Yardımcı ================= */

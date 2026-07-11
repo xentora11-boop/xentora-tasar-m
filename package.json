@@ -1,0 +1,10 @@
+{
+  "name": "xentora-design",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Xentora Design portfoy sitesi + Turso backend",
+  "type": "module",
+  "dependencies": {
+    "@libsql/client": "^0.15.4"
+  }
+}

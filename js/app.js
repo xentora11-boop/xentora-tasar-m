@@ -17,21 +17,12 @@ window.addEventListener('scroll', () => {
   $('#header').classList.toggle('scrolled', window.scrollY > 20);
 });
 
-/* Verileri yükle */
+/* Verileri yükle — Turso backend'den (Netlify Function) */
 async function loadDesigns() {
-  // Admin panelinden bu tarayıcıda eklenenler anında görünsün
-  const local = localStorage.getItem('xentora_designs');
-  if (local) {
-    try {
-      const arr = JSON.parse(local);
-      if (Array.isArray(arr) && arr.length) { DESIGNS = arr; finishLoad(); return; }
-    } catch { /* yoksay */ }
-  }
   try {
-    const res = await fetch('data/designs.json?v=' + Date.now());
+    const res = await fetch('/api/designs', { cache: 'no-store' });
     if (!res.ok) throw new Error('no data');
     const data = await res.json();
-    // Admin panel {items:[...]} olarak kaydeder; düz dizi de desteklenir
     DESIGNS = Array.isArray(data) ? data : (data.items || []);
   } catch {
     DESIGNS = [];
@@ -40,8 +31,7 @@ async function loadDesigns() {
 }
 
 function finishLoad() {
-  // En yeni önce
-  DESIGNS.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  // API zaten id DESC (en yeni önce) döndürür
   render();
   animateCount(DESIGNS.length);
 }

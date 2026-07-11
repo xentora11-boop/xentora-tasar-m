@@ -6,3 +6,7 @@ Thumbs.db
 # Geçici / önizleme
 preview.png
 *.tmp
+
+# Bağımlılıklar / Netlify
+node_modules/
+.netlify/
