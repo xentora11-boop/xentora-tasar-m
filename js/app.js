@@ -63,6 +63,7 @@ function buildCard(item, index) {
   }
 
   const cat = (item.category || '').toLowerCase();
+  card.dataset.cat = cat;
   const badge = (cat === 'gif' || /\.gif$/i.test(item.image) || isVideo(item.image))
     ? '<span class="card-badge-gif">● GIF</span>' : '';
 
