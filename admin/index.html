@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xentora Design — Yönetim Paneli</title>
+  <link rel="icon" type="image/png" href="../images/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <!-- ===== GİRİŞ EKRANI ===== -->
+  <div class="login-wrap" id="login-screen">
+    <form class="login-card" id="login-form">
+      <img src="../images/logo.png" alt="Xentora" class="login-logo" />
+      <h1>Yönetim Paneli</h1>
+      <p class="login-sub">Devam etmek için giriş yap</p>
+
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="username" autocomplete="username" placeholder="kullanıcı adı" required />
+
+      <label>Şifre</label>
+      <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" required />
+
+      <div class="login-error" id="login-error" hidden>Kullanıcı adı veya şifre hatalı.</div>
+
+      <button type="submit" class="btn btn-primary btn-block">Giriş Yap</button>
+      <a href="../" class="login-back">← Siteye dön</a>
+    </form>
+  </div>
+
+  <!-- ===== PANEL ===== -->
+  <div class="panel" id="panel" hidden>
+    <header class="panel-header">
+      <div class="panel-brand">
+        <img src="../images/logo.png" alt="Xentora" />
+        <span>XENTORA <b>DESIGN</b> · Panel</span>
+      </div>
+      <div class="panel-actions">
+        <a href="../" target="_blank" class="btn btn-ghost btn-sm">Siteyi Gör ↗</a>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Çıkış</button>
+      </div>
+    </header>
+
+    <main class="panel-main">
+      <!-- Yeni tasarım ekle -->
+      <section class="card-box">
+        <h2>Yeni Tasarım Ekle</h2>
+        <form id="add-form">
+          <div class="field">
+            <label>Başlık</label>
+            <input type="text" id="d-title" placeholder="Örn: Yaz Kampanyası Afişi" required />
+          </div>
+
+          <div class="field">
+            <label>Kategori</label>
+            <select id="d-category">
+              <option>Afiş</option>
+              <option>Logo</option>
+              <option>Banner</option>
+              <option>Gif</option>
+              <option>Diğer</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Görsel / GIF</label>
+            <div class="dropzone" id="dropzone">
+              <input type="file" id="d-file" accept="image/*,.gif" hidden />
+              <div class="dropzone-inner" id="dropzone-inner">
+                <div class="dz-icon">⬆</div>
+                <p>Resmi buraya sürükle ya da <span>seç</span></p>
+                <small>PNG, JPG, GIF · Oranı korunur, kırpılmaz</small>
+              </div>
+              <img id="preview-img" class="preview-img" hidden alt="önizleme" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Tasarımı Ekle</button>
+        </form>
+      </section>
+
+      <!-- Mevcut tasarımlar -->
+      <section class="card-box">
+        <div class="list-head">
+          <h2>Tasarımlar <span class="count-badge" id="count-badge">0</span></h2>
+          <button class="btn btn-accent btn-sm" id="publish-btn" title="designs.json dosyasını indir">⬇ Yayınla (designs.json indir)</button>
+        </div>
+
+        <div class="publish-hint">
+          Eklediğin tasarımlar bu tarayıcıda anında görünür. <b>Herkesin görmesi</b> için
+          <b>"Yayınla"</b>ya bas → inen <code>designs.json</code> dosyasını
+          <code>data/</code> klasörüne koy → siteyi Netlify'a tekrar sürükle-bırak yap.
+        </div>
+
+        <div class="design-list" id="design-list"></div>
+        <div class="list-empty" id="list-empty">Henüz tasarım yok. Yukarıdan ekle.</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

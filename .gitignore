@@ -1,0 +1,8 @@
+# Sistem dosyaları
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Geçici / önizleme
+preview.png
+*.tmp

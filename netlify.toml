@@ -1,0 +1,10 @@
+# Xentora Design — Netlify yapılandırması
+# Statik site, build gerektirmez.
+
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/data/designs.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "title": "Xentora Banner 2026",
+      "category": "Banner",
+      "image": "images/uploads/banner-2026.png",
+      "date": "2026-06-17"
+    },
+    {
+      "title": "Item Satış Afişi",
+      "category": "Afiş",
+      "image": "images/uploads/item-banner.png",
+      "date": "2026-06-19"
+    },
+    {
+      "title": "Xentora Logo Tasarımı",
+      "category": "Logo",
+      "image": "images/uploads/xentora-logo.png",
+      "date": "2026-06-17"
+    },
+    {
+      "title": "Hediye Animasyonu",
+      "category": "Gif",
+      "image": "images/uploads/gift-animasyon.gif",
+      "date": "2026-06-17"
+    }
+  ]
+}
