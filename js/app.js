@@ -12,6 +12,16 @@ const emptyState = $('#empty-state');
 /* Yıl */
 $('#year').textContent = new Date().getFullYear();
 
+/* Fare hareketine göre arkaplan parıltılarında hafif paralaks */
+const bgOrbs = $('.bg-orbs');
+if (bgOrbs && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  window.addEventListener('mousemove', (e) => {
+    const px = (e.clientX / window.innerWidth - 0.5);
+    const py = (e.clientY / window.innerHeight - 0.5);
+    bgOrbs.style.transform = `translate(${px * -24}px, ${py * -24}px)`;
+  });
+}
+
 /* Header scroll efekti + ilerleme çubuğu */
 const scrollProgress = $('#scroll-progress');
 window.addEventListener('scroll', () => {
@@ -23,8 +33,20 @@ window.addEventListener('scroll', () => {
   }
 });
 
+/* Yüklenirken iskelet kartlar göster */
+function renderSkeletons(count = 6) {
+  masonry.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const sk = document.createElement('div');
+    sk.className = 'card skeleton-card';
+    sk.style.height = (180 + (i % 3) * 60) + 'px';
+    masonry.appendChild(sk);
+  }
+}
+
 /* Verileri yükle — Turso backend'den (Netlify Function) */
 async function loadDesigns() {
+  renderSkeletons();
   try {
     const res = await fetch('/api/designs', { cache: 'no-store' });
     if (!res.ok) throw new Error('no data');
@@ -84,7 +106,25 @@ function buildCard(item, index) {
   card.appendChild(overlay);
 
   card.addEventListener('click', () => openLightbox(index));
+  card.addEventListener('mousemove', handleCardTilt);
+  card.addEventListener('mouseleave', resetCardTilt);
   return card;
+}
+
+/* Kart tilt (fare pozisyonuna göre 3D eğim) */
+function handleCardTilt(e) {
+  const card = e.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const px = (e.clientX - rect.left) / rect.width;
+  const py = (e.clientY - rect.top) / rect.height;
+  const maxTilt = 8;
+  card.style.setProperty('--tilt-y', ((px - 0.5) * maxTilt * 2) + 'deg');
+  card.style.setProperty('--tilt-x', (-(py - 0.5) * maxTilt * 2) + 'deg');
+}
+function resetCardTilt(e) {
+  const card = e.currentTarget;
+  card.style.setProperty('--tilt-x', '0deg');
+  card.style.setProperty('--tilt-y', '0deg');
 }
 
 /* Render */

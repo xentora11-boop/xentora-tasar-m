@@ -82,5 +82,5 @@ repodaki 4 örnek tasarım otomatik yüklenir. Hazırsın.
 - Kategori filtreleri, lightbox, ok tuşlarıyla gezinme, koyu premium tema, mobil uyumlu.
 
 ## Notlar
-- Görseller veritabanında base64 saklanır — tek tek **~4MB altında** tut (çok büyük dosyalar reddedilir).
+- Görseller veritabanında base64 saklanır — tek tek **~4.3MB altında** tut (çok büyük dosyalar reddedilir).
 - İletişim linkleri (Discord / WhatsApp) `index.html` içindeki iletişim bölümünde.

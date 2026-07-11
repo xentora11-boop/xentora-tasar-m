@@ -110,9 +110,10 @@ fileInput.addEventListener('change', () => {
 
 function handleFile(file) {
   if (!file.type.startsWith('image/')) { toast('Lütfen bir resim/GIF seç'); return; }
-  // base64, isteğe ~1.33x biner; sunucu limiti için orijinali ~4MB altında tut
-  if (file.size > 4 * 1024 * 1024) {
-    toast('Dosya 4MB üstü — daha küçük bir görsel öner (kayıt başarısız olabilir).');
+  // base64, isteğe ~1.33x biner; Netlify Functions'ın 6MB istek gövdesi sınırı yüzünden
+  // orijinali ~4.3MB altında tut (4.3MB * 1.33 ≈ 5.7MB, 6MB sınırının altında kalır)
+  if (file.size > 4.3 * 1024 * 1024) {
+    toast('Dosya 4.3MB üstü — daha küçük bir görsel öner (kayıt başarısız olabilir).');
   }
   const reader = new FileReader();
   reader.onload = (e) => {
