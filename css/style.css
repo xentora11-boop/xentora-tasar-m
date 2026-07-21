@@ -44,10 +44,17 @@ img { display: block; max-width: 100%; }
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shine 6s linear infinite;
+  filter: drop-shadow(0 0 22px rgba(35,200,255,.25));
 }
 @keyframes shine { to { background-position: 220% center; } }
 
 /* ===== Background FX ===== */
+/* İnce film grain dokusu (premium his) */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
 .bg-gradient {
   position: fixed; inset: 0; z-index: -2;
   background:
@@ -179,8 +186,10 @@ img { display: block; max-width: 100%; }
 @keyframes heroIn { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
 
 .hero-stats { display: flex; align-items: center; justify-content: center; gap: 30px; margin-top: 64px; }
-.stat { display: flex; flex-direction: column; align-items: center; }
-.stat-num { font-family: 'Sora'; font-size: 30px; font-weight: 800; color: var(--text); }
+.stat { display: flex; flex-direction: column; align-items: center; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.stat:hover { transform: translateY(-4px); }
+.stat-num { font-family: 'Sora'; font-size: 30px; font-weight: 800; color: var(--text); transition: color .3s, text-shadow .3s; }
+.stat:hover .stat-num { color: var(--accent); text-shadow: 0 0 18px var(--accent-glow); }
 .stat-label { font-size: 13px; color: var(--text-dim); letter-spacing: .5px; }
 .stat-divider { width: 1px; height: 38px; background: var(--border); }
 
@@ -246,6 +255,14 @@ img { display: block; max-width: 100%; }
 .card.in { opacity: 1; transform: translateY(0); }
 .card:hover { transform: translateY(-6px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)); border-color: var(--border-hl); box-shadow: 0 20px 48px rgba(0,0,0,.55), 0 0 28px var(--accent-glow); }
 @media (prefers-reduced-motion: reduce) { .card { opacity: 1 !important; transform: none !important; transition: box-shadow .3s, border-color .3s !important; } }
+
+/* Karta hover'da geçen ışık parıltısı */
+.card::before {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.14) 48%, transparent 62%);
+  transform: translateX(-120%); transition: transform .8s cubic-bezier(.2,.8,.2,1); opacity: 0;
+}
+.card:hover::before { transform: translateX(120%); opacity: 1; }
 
 .card-media { width: 100%; display: block; overflow: hidden; }
 .card-media img, .card-media video {
@@ -373,16 +390,27 @@ img { display: block; max-width: 100%; }
 }
 .rstat-label { display: block; margin-top: 6px; font-size: 13.5px; color: var(--text-dim); letter-spacing: .3px; }
 
-.reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-@media (max-width: 900px) { .reviews-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .reviews-grid { grid-template-columns: 1fr; } }
+.reviews-marquee {
+  position: relative; display: flex; flex-direction: column; gap: 20px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.reviews-row { display: flex; gap: 20px; width: max-content; animation: reviewScroll 46s linear infinite; }
+.reviews-row-rev { animation-direction: reverse; animation-duration: 54s; }
+.reviews-marquee:hover .reviews-row { animation-play-state: paused; }
+@keyframes reviewScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .reviews-row { animation: none; flex-wrap: wrap; width: auto; } }
 
 .review-card {
+  flex: none; width: 340px;
   padding: 22px 22px 20px; border-radius: 16px;
-  background: var(--surface); border: 1px solid var(--border);
-  transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s;
+  background: linear-gradient(160deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s, box-shadow .35s;
 }
-.review-card:hover { transform: translateY(-5px); border-color: var(--border-hl); box-shadow: 0 16px 38px rgba(0,0,0,.45), 0 0 22px var(--accent-glow); }
+.review-card:hover { transform: translateY(-6px) scale(1.02); border-color: var(--border-hl); box-shadow: 0 18px 40px rgba(0,0,0,.5), 0 0 26px var(--accent-glow); }
+@media (max-width: 560px) { .review-card { width: 280px; } }
 .review-top { display: flex; align-items: center; gap: 12px; }
 .review-avatar {
   flex: none; width: 42px; height: 42px; border-radius: 50%;

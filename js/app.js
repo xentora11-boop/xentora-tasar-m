@@ -280,35 +280,44 @@ function randomReviewDate() {
   return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function buildReviews(count = 12) {
-  const grid = document.getElementById('reviews-grid');
-  if (!grid) return;
-  const usedNames = new Set();
-  const frag = document.createDocumentFragment();
+function makeReviewCard(name, extraClass = '') {
+  const card = document.createElement('div');
+  card.className = 'review-card' + (extraClass ? ' ' + extraClass : '');
+  card.innerHTML = `
+    <div class="review-top">
+      <div class="review-avatar">${escapeHtml(name.charAt(0))}</div>
+      <div class="review-meta">
+        <span class="review-name">${escapeHtml(name)}</span>
+        <span class="review-date">${randomReviewDate()}</span>
+      </div>
+      <span class="review-score">10/10</span>
+    </div>
+    <p class="review-text">${escapeHtml(pick(REVIEW_TEXTS))}</p>
+    <span class="review-verified">✔ Doğrulanmış Alıcı</span>
+  `;
+  return card;
+}
 
+function fillReviewRow(rowId, count) {
+  const row = document.getElementById(rowId);
+  if (!row) return [];
+  const cards = [];
+  const usedNames = new Set();
   for (let i = 0; i < count; i++) {
     let name;
     do { name = pick(REVIEW_FIRST) + ' ' + pick(REVIEW_LAST); } while (usedNames.has(name) && usedNames.size < 200);
     usedNames.add(name);
-
-    const card = document.createElement('div');
-    card.className = 'review-card reveal';
-    card.innerHTML = `
-      <div class="review-top">
-        <div class="review-avatar">${escapeHtml(name.charAt(0))}</div>
-        <div class="review-meta">
-          <span class="review-name">${escapeHtml(name)}</span>
-          <span class="review-date">${randomReviewDate()}</span>
-        </div>
-        <span class="review-score">10/10</span>
-      </div>
-      <p class="review-text">${escapeHtml(pick(REVIEW_TEXTS))}</p>
-      <span class="review-verified">✔ Doğrulanmış Alıcı</span>
-    `;
-    frag.appendChild(card);
-    revealObserver.observe(card);
+    cards.push(makeReviewCard(name));
   }
-  grid.appendChild(frag);
+  // Sonsuz kayma için ikiye katla (kopyalar aria-hidden)
+  cards.forEach(c => row.appendChild(c));
+  cards.forEach(c => { const clone = c.cloneNode(true); clone.setAttribute('aria-hidden', 'true'); row.appendChild(clone); });
+  return cards;
+}
+
+function buildReviews() {
+  fillReviewRow('reviews-row-1', 7);
+  fillReviewRow('reviews-row-2', 7);
 }
 buildReviews();
 
