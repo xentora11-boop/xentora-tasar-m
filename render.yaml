@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: xentoragfx
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .

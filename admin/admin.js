@@ -1,4 +1,4 @@
-/* ===== Xentora Admin Panel — Turso backend ===== */
+/* ===== XentoraGFX Admin Panel — Turso backend (yalnızca Web Service ile çalışır) ===== */
 
 // Kullanici adi sadece arayuz kolayligi; asil guvenlik sunucudaki sifre (ADMIN_PASSWORD env).
 const USERNAME = 'ozantaskin1491';

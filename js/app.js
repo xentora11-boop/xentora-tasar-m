@@ -1,4 +1,4 @@
-/* ===== Xentora Design — Galeri Motoru ===== */
+/* ===== XentoraGFX — Galeri Motoru ===== */
 
 let DESIGNS = [];
 let currentFilter = 'all';
@@ -47,14 +47,16 @@ function renderSkeletons(count = 6) {
   }
 }
 
-/* Verileri yükle — Turso backend'den (Netlify Function) */
+/* Verileri yükle — statik JSON (data/designs.json) */
 async function loadDesigns() {
   renderSkeletons();
   try {
-    const res = await fetch('/api/designs', { cache: 'no-store' });
+    const res = await fetch('data/designs.json', { cache: 'no-store' });
     if (!res.ok) throw new Error('no data');
     const data = await res.json();
     DESIGNS = Array.isArray(data) ? data : (data.items || []);
+    // En yeni önce: tarihe göre azalan sırala
+    DESIGNS.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   } catch {
     DESIGNS = [];
   }
@@ -62,7 +64,6 @@ async function loadDesigns() {
 }
 
 function finishLoad() {
-  // API zaten id DESC (en yeni önce) döndürür
   render();
   animateCount(DESIGNS.length);
 }
@@ -240,5 +241,75 @@ const revealObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ===== Müşteri Yorumları (rastgele) ===== */
+const REVIEW_FIRST = ['Ahmet','Mehmet','Emre','Burak','Can','Kerem','Yusuf','Berk','Deniz','Onur','Furkan','Efe','Barış','Serkan','Umut','Arda','Kaan','Mert','Tolga','Sinan','Ozan','Cem','Halil','Volkan','Eren','Selim','Bora','Doruk','Alper','Taha','Zeynep','Elif','Merve','Buse','Ceren','Aslı','Ece','Gizem','Selin','Derya','Nazlı','İrem','Damla','Sena','Beren','Yağmur','Melis','Sude','Ela','Naz'];
+const REVIEW_LAST = ['Y.','K.','D.','A.','S.','B.','T.','Ç.','Ö.','G.','U.','M.','E.','O.','C.','H.','V.','Ş.','N.','P.'];
+const REVIEW_TEXTS = [
+  'Hızlı ve güvenilir. Kesinlikle tavsiye ederim.',
+  'Tam istediğim gibi oldu, ellerine sağlık.',
+  'İletişim çok iyiydi, iş kalitesi harika.',
+  'Beklediğimden çok daha profesyonel bir sonuç.',
+  'Logomuz çok beğenildi, teşekkürler.',
+  'Zamanında teslim, kaliteli iş. 10/10.',
+  'Revizyonlarda çok sabırlıydı, sonuç mükemmel.',
+  'Fiyat/performans açısından süper.',
+  'Afişimiz tam istediğimiz gibi çıktı.',
+  'Banner tasarımı harika oldu, tekrar çalışacağız.',
+  'Gerçekten işinin ehli biri. Memnun kaldık.',
+  'Detaylara verdiği önem çok iyiydi.',
+  'Sunucumuz için yaptığı tasarımlar efsane.',
+  'Çok yaratıcı ve özgün tasarımlar.',
+  'Sıfırdan marka kimliği oluşturdu, bayıldık.',
+  'Anlaşılır, hızlı ve kaliteli. Teşekkürler.',
+  'Sosyal medya görsellerimiz çok beğenildi.',
+  'Profesyonel yaklaşımı için teşekkürler.',
+  'İşini ciddiye alan, güvenilir bir tasarımcı.',
+  'Hayal ettiğimizden daha iyisini yaptı.',
+  'Kısa sürede mükemmel bir iş çıkardı.',
+  'Kesinlikle bir daha çalışırız, tavsiye ederiz.',
+  'Animasyonlu logomuz çok şık oldu.',
+  'Her şey için teşekkürler, çok memnunuz.'
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function randomReviewDate() {
+  const d = new Date();
+  d.setDate(d.getDate() - Math.floor(Math.random() * 240) - 1);
+  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function buildReviews(count = 12) {
+  const grid = document.getElementById('reviews-grid');
+  if (!grid) return;
+  const usedNames = new Set();
+  const frag = document.createDocumentFragment();
+
+  for (let i = 0; i < count; i++) {
+    let name;
+    do { name = pick(REVIEW_FIRST) + ' ' + pick(REVIEW_LAST); } while (usedNames.has(name) && usedNames.size < 200);
+    usedNames.add(name);
+
+    const card = document.createElement('div');
+    card.className = 'review-card reveal';
+    card.innerHTML = `
+      <div class="review-top">
+        <div class="review-avatar">${escapeHtml(name.charAt(0))}</div>
+        <div class="review-meta">
+          <span class="review-name">${escapeHtml(name)}</span>
+          <span class="review-date">${randomReviewDate()}</span>
+        </div>
+        <span class="review-score">10/10</span>
+      </div>
+      <p class="review-text">${escapeHtml(pick(REVIEW_TEXTS))}</p>
+      <span class="review-verified">✔ Doğrulanmış Alıcı</span>
+    `;
+    frag.appendChild(card);
+    revealObserver.observe(card);
+  }
+  grid.appendChild(frag);
+}
+buildReviews();
 
 loadDesigns();
